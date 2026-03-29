@@ -1,0 +1,14 @@
+{
+  "bizId": "bounty-summary-20260313",
+  "bizType": "TRILATERA_SKILLS",
+  "title": "Bounty Hunting 进展总结",
+  "skills": ["slide"],
+  "require": "简洁商务风格，白色背景，蓝色强调色",
+  "sources": [
+    {
+      "id": "1",
+      "title": "Bounty 进展",
+      "content_text": "Bounty Hunting 进展总结\n\n总览\n- 已提交：2 个项目\n- 进行中：1 个（暂停）\n- 已放弃：2 个\n- 总收益：等待评审中\n\n已提交项目\n1. Spark Hackathon #1 - OpenClaw Instances\n   奖金：3260 USDC，入围奖 100\n   平台：Superteam Earn\n   状态：已提交等待评审\n\n2. Syra AI Thread Bounty\n   奖金：150 USDC\n   平台：Superteam Earn\n   状态：已提交等待评审\n\n进行中项目\n- Create Pool on Maple.Fun\n  奖金：200 USDC\n  状态：暂停，需要先入金\n\n已放弃项目\n- TokenTon26 AI Track\n  放弃原因：需要 DeAura token 和 20 万交易量，不符合资质\n\nSolMind 项目\n- GitHub: github.com/spzwin/solmind\n- 线上地址：tokenton26-solmind.vercel.app\n- 技术栈：Next.js 14 加 Solana web3.js\n- 状态：已部署，待提交表单\n\n策略总结\n- 目标：20 到 100 美元小单优先\n- 周期：3 天内可完成\n- 原则：稳拿为主，先积累记录\n\n下一步\n1. 等待已提交 bounty 评审结果\n2. 决定是否继续 Maple.Fun\n3. 寻找新的小额 bounty 机会"
+    }
+  ]
+}

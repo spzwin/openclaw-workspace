@@ -1,0 +1,68 @@
+{
+  "projectId": "PROJ-20260319-001",
+  "name": "智能客服系统开发流程",
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "需求分析与设计",
+      "description": "完成需求调研、竞品分析和技术方案设计",
+      "tasks": [
+        {
+          "id": "RT01",
+          "name": "BD 初审 - 商机分析与需求确认",
+          "expertId": "expert-bd",
+          "description": "分析客户需求，确认项目范围、预算、时间线，输出需求文档",
+          "dependencies": [],
+          "outputPath": "RT01_BD_Analysis/deliverables/bd_report.md",
+          "estimatedHours": 2
+        },
+        {
+          "id": "RT02",
+          "name": "创研初审 - 市场调研与竞品分析",
+          "expertId": "expert-research",
+          "description": "调研市场现状，分析竞品优劣势，输出市场分析报告",
+          "dependencies": [],
+          "outputPath": "RT02_Research_Analysis/deliverables/research_report.md",
+          "estimatedHours": 3
+        }
+      ]
+    },
+    {
+      "id": "phase-2",
+      "name": "中评阶段",
+      "description": "综合 BD 和创研报告，评估项目可行性",
+      "tasks": [
+        {
+          "id": "RT03",
+          "name": "中评 - 项目可行性评估",
+          "expertId": "expert-mid-review",
+          "description": "综合 RT01 和 RT02 的输出，评估技术可行性、商业价值、风险点，输出中评报告",
+          "dependencies": ["RT01", "RT02"],
+          "outputPath": "RT03_Mid_Review/deliverables/mid_review_report.md",
+          "estimatedHours": 2
+        }
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "终评阶段",
+      "description": "最终评审，决定是否立项",
+      "tasks": [
+        {
+          "id": "RT04",
+          "name": "终评 - 立项决策",
+          "expertId": "expert-final-review",
+          "description": "基于中评报告，做出立项决策，输出立项建议书或拒绝理由",
+          "dependencies": ["RT03"],
+          "outputPath": "RT04_Final_Review/deliverables/final_review_report.md",
+          "estimatedHours": 1
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "totalTasks": 4,
+    "estimatedTotalHours": 8,
+    "criticalPath": ["RT01", "RT03", "RT04"]
+  }
+}

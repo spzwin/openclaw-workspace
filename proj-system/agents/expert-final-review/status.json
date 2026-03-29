@@ -1,0 +1,11 @@
+{
+  "expertId": "expert-final-review",
+  "agentId": "pending",
+  "sessionKey": "pending",
+  "currentTask": null,
+  "taskHistory": [],
+  "capabilities": ["立项决策", "战略评估", "资源规划", "最终评审"],
+  "lastHeartbeat": "2026-03-19T08:35:00Z",
+  "status": "idle",
+  "updatedAt": "2026-03-19T08:35:00Z"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "demo-001",
+  "name": "事件驱动调度演示项目",
+  "description": "演示从定时器轮询到事件驱动的完整流程",
+  "status": "in_progress",
+  "createdAt": "2026-03-19T08:00:00Z",
+  "updatedAt": "2026-03-19T08:00:00Z",
+  
+  "progress": {
+    "currentPhase": "phase-1",
+    "completedTasks": [],
+    "pendingTasks": ["task-001", "task-002", "task-003"],
+    "percentComplete": 0
+  },
+  
+  "currentAgent": null,
+  
+  "deliverables": [],
+  
+  "metadata": {
+    "owner": "大爷",
+    "priority": "high",
+    "tags": ["演示", "事件驱动", "调度中心"]
+  }
+}

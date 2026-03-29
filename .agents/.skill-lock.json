@@ -1,0 +1,15 @@
+{
+  "version": 3,
+  "skills": {
+    "bounty-hunter": {
+      "source": "openclaw/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/openclaw/skills.git",
+      "skillPath": "skills/satoshi891102/bounty-hunter/SKILL.md",
+      "skillFolderHash": "",
+      "installedAt": "2026-02-28T11:41:45.160Z",
+      "updatedAt": "2026-02-28T11:41:45.470Z"
+    }
+  },
+  "dismissed": {}
+}

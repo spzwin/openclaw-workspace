@@ -1,0 +1,11 @@
+{
+  "expertId": "expert-research",
+  "agentId": "pending",
+  "sessionKey": "pending",
+  "currentTask": null,
+  "taskHistory": [],
+  "capabilities": ["市场调研", "竞品分析", "行业研究", "数据分析"],
+  "lastHeartbeat": "2026-03-19T08:35:00Z",
+  "status": "idle",
+  "updatedAt": "2026-03-19T08:35:00Z"
+}

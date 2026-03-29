@@ -1,0 +1,12 @@
+{
+  "expertId": "expert-{id}",
+  "agentId": "{agent-session-id}",
+  "sessionKey": "{session-key}",
+  "currentTask": null,
+  "taskHistory": [],
+  "capabilities": [],
+  "lastHeartbeat": "{timestamp}",
+  "status": "idle",
+  "errorMessage": null,
+  "updatedAt": "{timestamp}"
+}

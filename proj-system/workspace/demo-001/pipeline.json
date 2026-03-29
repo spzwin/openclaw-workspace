@@ -1,0 +1,87 @@
+{
+  "projectId": "demo-001",
+  "name": "事件驱动调度演示流程",
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "需求分析与设计",
+      "description": "完成产品需求和技术方案设计",
+      "tasks": [
+        {
+          "id": "task-001",
+          "name": "产品需求分析",
+          "expertId": "product-manager",
+          "description": "分析用户需求，输出完整的产品需求文档（PRD），包含用户故事、功能列表、验收标准",
+          "dependencies": [],
+          "outputPath": "deliverables/phase-1/prd.md",
+          "estimatedHours": 2
+        },
+        {
+          "id": "task-002",
+          "name": "技术方案设计",
+          "expertId": "engineering-software-architect",
+          "description": "基于 PRD 设计系统架构，包含技术选型、模块划分、API 设计、数据库设计",
+          "dependencies": ["task-001"],
+          "outputPath": "deliverables/phase-1/architecture.md",
+          "estimatedHours": 3
+        }
+      ]
+    },
+    {
+      "id": "phase-2",
+      "name": "开发实现",
+      "description": "完成前后端开发",
+      "tasks": [
+        {
+          "id": "task-003",
+          "name": "前端开发",
+          "expertId": "engineering-frontend-developer",
+          "description": "根据设计稿和 API 文档，实现前端界面和交互逻辑",
+          "dependencies": ["task-002"],
+          "outputPath": "deliverables/phase-2/frontend/",
+          "estimatedHours": 8
+        },
+        {
+          "id": "task-004",
+          "name": "后端开发",
+          "expertId": "engineering-backend-architect",
+          "description": "根据架构设计，实现后端 API 服务和数据库",
+          "dependencies": ["task-002"],
+          "outputPath": "deliverables/phase-2/backend/",
+          "estimatedHours": 8
+        }
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "测试与部署",
+      "description": "完成测试和上线部署",
+      "tasks": [
+        {
+          "id": "task-005",
+          "name": "集成测试",
+          "expertId": "testing-api-tester",
+          "description": "对前后端进行集成测试，确保接口正常工作",
+          "dependencies": ["task-003", "task-004"],
+          "outputPath": "deliverables/phase-3/test-report.md",
+          "estimatedHours": 2
+        },
+        {
+          "id": "task-006",
+          "name": "部署上线",
+          "expertId": "engineering-devops-automator",
+          "description": "配置 CI/CD 流水线，部署到生产环境",
+          "dependencies": ["task-005"],
+          "outputPath": "deliverables/phase-3/deployment.md",
+          "estimatedHours": 2
+        }
+      ]
+    }
+  ],
+  
+  "metadata": {
+    "totalTasks": 6,
+    "estimatedTotalHours": 25,
+    "criticalPath": ["task-001", "task-002", "task-003", "task-005", "task-006"]
+  }
+}

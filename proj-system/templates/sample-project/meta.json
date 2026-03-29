@@ -1,0 +1,23 @@
+{
+  "id": "PROJ-20260319-001",
+  "name": "示例项目 - 智能客服系统",
+  "description": "基于 AI 的智能客服系统，支持多轮对话和工单自动分类",
+  "version": 1,
+  "status": "in_progress",
+  "createdAt": "2026-03-19T08:00:00Z",
+  "updatedAt": "2026-03-19T08:00:00Z",
+  "progress": {
+    "currentPhase": "phase-1",
+    "completedTasks": [],
+    "pendingTasks": ["RT01", "RT02", "RT03", "RT04"],
+    "assignedTasks": [],
+    "percentComplete": 0
+  },
+  "currentAgent": null,
+  "deliverables": [],
+  "metadata": {
+    "owner": "大爷",
+    "priority": "high",
+    "tags": ["AI", "客服", "SaaS"]
+  }
+}

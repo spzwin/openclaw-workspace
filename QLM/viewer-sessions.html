@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 调用日志查看器 - 会话版</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    /* 左侧会话列表 */
+    .sidebar {
+      width: 300px;
+      background: #16213e;
+      border-right: 1px solid #1a2744;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid #1a2744;
+    }
+    .sidebar-header h2 {
+      color: #00d9ff;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .session-list {
+      list-style: none;
+    }
+    .session-item {
+      padding: 15px 20px;
+      border-bottom: 1px solid #1a2744;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .session-item:hover {
+      background: #1a2744;
+    }
+    .session-item.active {
+      background: #0f3460;
+      border-left: 4px solid #00d9ff;
+    }
+    .session-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #00d9ff;
+    }
+    .session-meta {
+      font-size: 12px;
+      color: #888;
+    }
+    .session-stats {
+      display: flex;
+      gap: 10px;
+      margin-top: 5px;
+      font-size: 11px;
+    }
+    .session-stat {
+      background: #0f1b2e;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    
+    /* 右侧内容区 */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .header h1 {
+      color: #00d9ff;
+      font-size: 24px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    button {
+      background: #00d9ff;
+      color: #1a1a2e;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    button:hover { background: #00b8d9; }
+    button.active { background: #ff6b6b; }
+    .search-box {
+      padding: 8px 12px;
+      border: 1px solid #1a2744;
+      border-radius: 5px;
+      background: #0f1b2e;
+      color: #eee;
+      width: 200px;
+      font-size: 13px;
+    }
+    
+    /* 统计卡片 */
+    .stats {
+      background: #16213e;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-value { font-size: 24px; font-weight: bold; color: #00d9ff; }
+    .stat-label { font-size: 12px; color: #888; }
+    
+    /* 消息卡片 */
+    .message {
+      background: #16213e;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      overflow: hidden;
+    }
+    .message-header {
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .message-header:hover { background: #1a2744; }
+    .message.user .message-header { border-left: 4px solid #00d9ff; }
+    .message.assistant .message-header { border-left: 4px solid #ff6b6b; }
+    .message.toolResult .message-header { border-left: 4px solid #4ecdc4; }
+    .role { font-weight: bold; text-transform: uppercase; font-size: 12px; }
+    .role.user { color: #00d9ff; }
+    .role.assistant { color: #ff6b6b; }
+    .role.toolResult { color: #4ecdc4; }
+    .timestamp { font-size: 12px; color: #888; }
+    .message-content {
+      padding: 15px;
+      display: none;
+      border-top: 1px solid #1a2744;
+    }
+    .message.expanded .message-content { display: block; }
+    .content-block {
+      background: #0f1b2e;
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .thinking { border-left: 3px solid #ffd93d; }
+    .toolCall { border-left: 3px solid #ff6b6b; }
+    .text { border-left: 3px solid #00d9ff; }
+    .usage {
+      background: #0f1b2e;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .usage-item { color: #888; }
+    .usage-item strong { color: #00d9ff; }
+    .filter-info { color: #888; font-size: 14px; margin-bottom: 10px; }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #888;
+    }
+    .empty-state h3 { color: #00d9ff; margin-bottom: 10px; }
+    
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #1a1a2e; }
+    ::-webkit-scrollbar-thumb { background: #00d9ff; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <!-- 左侧会话列表 -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>🦞 会话列表</h2>
+      <div id="session-count" style="font-size: 12px; color: #888;">加载中...</div>
+    </div>
+    <ul class="session-list" id="session-list"></ul>
+  </div>
+  
+  <!-- 右侧内容区 -->
+  <div class="main">
+    <div class="header">
+      <h1 id="session-title">选择一个会话</h1>
+      <div class="controls">
+        <button onclick="expandAll()">展开所有</button>
+        <button onclick="collapseAll()">收起所有</button>
+        <button id="btn-user" class="active" onclick="toggleFilter('user')">👤 用户</button>
+        <button id="btn-assistant" class="active" onclick="toggleFilter('assistant')">🤖 AI</button>
+        <button id="btn-tool" class="active" onclick="toggleFilter('tool')">🔧 工具</button>
+        <input type="text" class="search-box" id="search" placeholder="🔍 搜索..." oninput="applySearch()">
+      </div>
+    </div>
+    
+    <div class="stats" id="stats" style="display:none;">
+      <div class="stat">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">总消息数</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-user">0</div>
+        <div class="stat-label">用户消息</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-assistant">0</div>
+        <div class="stat-label">AI 回复</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-tools">0</div>
+        <div class="stat-label">工具调用</div>
+      </div>
+    </div>
+    
+    <div class="filter-info" id="filter-info"></div>
+    <div id="messages"></div>
+  </div>
+
+  <script>
+    let sessions = {};
+    let currentSession = null;
+    let currentFilters = { user: true, assistant: true, tool: true };
+    let searchTerm = '';
+
+    // 自动发现并加载所有会话文件
+    async function loadSessions() {
+      const sessionFiles = [
+        'latest-session.json',
+        'session-history-20260316090402.json',
+        'session-history-20260316085446.json'
+      ];
+      
+      for (const file of sessionFiles) {
+        try {
+          const response = await fetch(file);
+          if (response.ok) {
+            const data = await response.json();
+            const sessionId = data.sessionId || file.replace('.json', '');
+            sessions[sessionId] = {
+              id: sessionId,
+              file: file,
+              name: formatSessionName(file),
+              exportedAt: data.exportedAt,
+              totalMessages: data.totalMessages || (data.messages?.length || 0),
+              messages: data.messages || []
+            };
+          }
+        } catch (e) {
+          console.log('文件加载失败:', file);
+        }
+      }
+      
+      renderSessionList();
+      
+      // 自动选择第一个会话
+      const sessionIds = Object.keys(sessions);
+      if (sessionIds.length > 0) {
+        selectSession(sessionIds[0]);
+      }
+    }
+
+    function formatSessionName(filename) {
+      const match = filename.match(/session-history-(\d{14})\.json/);
+      if (match) {
+        const dateStr = match[1];
+        const year = dateStr.slice(0, 4);
+        const month = dateStr.slice(4, 6);
+        const day = dateStr.slice(6, 8);
+        const hour = dateStr.slice(8, 10);
+        const min = dateStr.slice(10, 12);
+        return `${year}-${month}-${day} ${hour}:${min}`;
+      }
+      return filename.replace('.json', '');
+    }
+
+    function renderSessionList() {
+      const list = document.getElementById('session-list');
+      const count = document.getElementById('session-count');
+      
+      list.innerHTML = '';
+      count.textContent = `共 ${Object.keys(sessions).length} 个会话`;
+      
+      Object.keys(sessions).forEach(id => {
+        const session = sessions[id];
+        const userCount = session.messages.filter(m => m.role === 'user').length;
+        const aiCount = session.messages.filter(m => m.role === 'assistant').length;
+        const toolCount = session.messages.filter(m => m.role === 'toolResult').length;
+        
+        const li = document.createElement('li');
+        li.className = 'session-item';
+        li.dataset.sessionId = id;
+        li.onclick = () => selectSession(id);
+        li.innerHTML = `
+          <div class="session-name">${session.name}</div>
+          <div class="session-meta">📊 ${session.totalMessages} 条消息</div>
+          <div class="session-stats">
+            <span class="session-stat">👤 ${userCount}</span>
+            <span class="session-stat">🤖 ${aiCount}</span>
+            <span class="session-stat">🔧 ${toolCount}</span>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    function selectSession(sessionId) {
+      currentSession = sessions[sessionId];
+      
+      // 更新激活状态
+      document.querySelectorAll('.session-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.sessionId === sessionId);
+      });
+      
+      // 更新标题
+      document.getElementById('session-title').textContent = currentSession.name;
+      
+      // 渲染消息
+      renderMessages();
+      updateStats();
+      document.getElementById('stats').style.display = 'flex';
+    }
+
+    function renderMessages() {
+      const container = document.getElementById('messages');
+      container.innerHTML = '';
+      
+      if (!currentSession) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <h3>👈 请选择一个会话</h3>
+            <p>从左侧列表中选择一个会话查看详情</p>
+          </div>
+        `;
+        return;
+      }
+      
+      let visibleCount = 0;
+      
+      currentSession.messages.forEach((msg, idx) => {
+        const isVisible = checkVisibility(msg);
+        if (!isVisible) return;
+        visibleCount++;
+        
+        const div = document.createElement('div');
+        div.className = `message ${msg.role}`;
+        div.innerHTML = `
+          <div class="message-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <span class="role ${msg.role}">${msg.role}</span>
+            <span class="timestamp">${formatTime(msg.timestamp)}</span>
+          </div>
+          <div class="message-content">
+            ${renderContent(msg)}
+            ${msg.usage ? renderUsage(msg.usage) : ''}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+      
+      document.getElementById('filter-info').textContent = 
+        `显示 ${visibleCount} / ${currentSession.messages.length} 条消息`;
+    }
+
+    function checkVisibility(msg) {
+      if (msg.role === 'user' && !currentFilters.user) return false;
+      if (msg.role === 'assistant' && !currentFilters.assistant) return false;
+      if (msg.role === 'toolResult' && !currentFilters.tool) return false;
+      
+      if (searchTerm) {
+        const text = JSON.stringify(msg).toLowerCase();
+        if (!text.includes(searchTerm.toLowerCase())) return false;
+      }
+      
+      return true;
+    }
+
+    function renderContent(msg) {
+      if (!msg.content || !Array.isArray(msg.content)) return '';
+      
+      return msg.content.map(block => {
+        if (block.type === 'thinking') {
+          return `<div class="content-block thinking">🧠 <strong>思考过程:</strong>\n${escapeHtml(block.thinking || '')}</div>`;
+        }
+        if (block.type === 'toolCall') {
+          return `<div class="content-block toolCall">🔧 <strong>工具调用:</strong>\n${block.name}(${JSON.stringify(block.arguments, null, 2)})</div>`;
+        }
+        if (block.type === 'text') {
+          return `<div class="content-block text">📝 <strong>回复:</strong>\n${escapeHtml(block.text || '')}</div>`;
+        }
+        return '';
+      }).join('');
+    }
+
+    function renderUsage(usage) {
+      return `
+        <div class="usage">
+          <div class="usage-item">输入：<strong>${usage.input || 0}</strong></div>
+          <div class="usage-item">输出：<strong>${usage.output || 0}</strong></div>
+          <div class="usage-item">总计：<strong>${usage.totalTokens || 0}</strong></div>
+          <div class="usage-item">成本：<strong>$${(usage.cost?.total || 0).toFixed(6)}</strong></div>
+        </div>
+      `;
+    }
+
+    function updateStats() {
+      if (!currentSession) return;
+      document.getElementById('stat-total').textContent = currentSession.messages.length;
+      document.getElementById('stat-user').textContent = currentSession.messages.filter(m => m.role === 'user').length;
+      document.getElementById('stat-assistant').textContent = currentSession.messages.filter(m => m.role === 'assistant').length;
+      document.getElementById('stat-tools').textContent = currentSession.messages.filter(m => m.role === 'toolResult').length;
+    }
+
+    function toggleFilter(type) {
+      currentFilters[type] = !currentFilters[type];
+      document.getElementById(`btn-${type}`).classList.toggle('active');
+      renderMessages();
+    }
+
+    function expandAll() {
+      document.querySelectorAll('.message').forEach(m => m.classList.add('expanded'));
+    }
+
+    function collapseAll() {
+      document.querySelectorAll('.message').forEach(m => m.classList.remove('expanded'));
+    }
+
+    function applySearch() {
+      searchTerm = document.getElementById('search').value;
+      renderMessages();
+    }
+
+    function formatTime(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      return d.toLocaleString('zh-CN');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // 页面加载完成后自动加载会话列表
+    loadSessions();
+  </script>
+</body>
+</html>

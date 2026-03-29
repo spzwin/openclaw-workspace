@@ -1,0 +1,149 @@
+{
+  "run_at": "2026-03-28T19:19:00+08:00",
+  "source_doc": "工作协同API说明.md",
+  "app_key_used": true,
+  "recipient": {
+    "name": "屈军利",
+    "empId": "1514822127830339585",
+    "personId": 12139,
+    "corpId": "1509805893730611201"
+  },
+  "current_user": {
+    "name": "宋培众",
+    "empId": "1514822080577310721"
+  },
+  "created_resources": {
+    "uploaded_resource_id": "2037895404074434561",
+    "test_report_id": "2037895527831597058",
+    "test_reply_id": "2037895545128869890",
+    "test_plan_id": "2037896299117928449",
+    "completed_todo_id": "2037827358957887489"
+  },
+  "scripts": [
+    {
+      "script": "scripts/user-search/search-emp.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/employee-service/get-by-person-ids.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/employee-service/get-org-info.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/file-service/upload-file.py",
+      "status": "success",
+      "resourceId": "2037895404074434561"
+    },
+    {
+      "script": "scripts/file-service/get-download-info.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/report-write/submit.py",
+      "status": "success",
+      "reportId": "2037895527831597058"
+    },
+    {
+      "script": "scripts/report-write/reply.py",
+      "status": "success",
+      "replyId": "2037895545128869890"
+    },
+    {
+      "script": "scripts/inbox/get-list.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/outbox/get-list.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/report-detail/get-info.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/tasks/get-page.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/tasks/get-simple-plan-and-report-info.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/todos/get-list.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/todos/list-created-feedbacks.py",
+      "status": "success",
+      "note": "响应时间明显慢于其他普通接口"
+    },
+    {
+      "script": "scripts/todos/complete.py",
+      "status": "success",
+      "todoId": "2037827358957887489"
+    },
+    {
+      "script": "scripts/templates/get-list.py",
+      "status": "success",
+      "note": "接口返回 data=null"
+    },
+    {
+      "script": "scripts/templates/get-by-ids.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/plugin-report/get-list.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/plugin-report/get-latest-list.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/plugin-report/get-unread-list.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/report-query/get-todo-list.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/report-query/get-unread-list.py",
+      "status": "success",
+      "note": "返回结果体很大，终端输出被截断"
+    },
+    {
+      "script": "scripts/report-query/is-report-read.py",
+      "status": "success",
+      "data": true
+    },
+    {
+      "script": "scripts/report-message/find-my-new-msg-list.py",
+      "status": "success",
+      "note": "返回结果体很大，终端输出被截断"
+    },
+    {
+      "script": "scripts/report-message/read-report.py",
+      "status": "success"
+    },
+    {
+      "script": "scripts/ai-qa/ask-sse.py",
+      "status": "success_with_anomaly",
+      "note": "answer 字段拼接了多段 SSE JSON 片段，不是干净纯文本"
+    },
+    {
+      "script": "scripts/plan-create/create-simple.py",
+      "status": "success",
+      "planId": "2037896299117928449"
+    }
+  ],
+  "anomalies": [
+    "templates/get-list 返回 resultCode=1 但 data 为 null。",
+    "todos/list-created-feedbacks 与 ai-qa/ask-sse 耗时明显偏长。",
+    "ai-qa/ask-sse 的 answer 字段是 SSE 片段拼接结果，后处理不完整。",
+    "report-query/get-unread-list 与 report-message/find-my-new-msg-list 的返回体很大，终端显示被截断，但接口本身成功。"
+  ]
+}

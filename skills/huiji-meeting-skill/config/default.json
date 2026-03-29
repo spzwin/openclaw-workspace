@@ -1,0 +1,21 @@
+{
+  "apiBaseUrl": "https://sg-al-ai-voice-assistant.mediportal.com.cn/api/open-api/ai-huiji/meetingChat/chatListByPage",
+  "splitRecordUrl": "https://sg-al-ai-voice-assistant.mediportal.com.cn/api/open-api/ai-huiji/meetingChat/splitRecordList",
+  "checkSecondSttUrl": "https://sg-al-ai-voice-assistant.mediportal.com.cn/api/open-api/ai-huiji/meetingChat/checkSecondSttV2",
+  "reportInfoUrl": "https://sg-al-ai-voice-assistant.mediportal.com.cn/api/open-api/ai-huiji/report/reportInfo",
+  "appKey": "",
+  "cache": {
+    "ttl": 60000,
+    "maxSize": 100
+  },
+  "monitor": {
+    "enabled": true,
+    "interval": 30000,
+    "threshold": 3
+  },
+  "notification": {
+    "enabled": false,
+    "webhookUrl": "",
+    "channels": ["console"]
+  }
+}

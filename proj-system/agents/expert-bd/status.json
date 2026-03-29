@@ -1,0 +1,11 @@
+{
+  "expertId": "expert-bd",
+  "agentId": "pending",
+  "sessionKey": "pending",
+  "currentTask": null,
+  "taskHistory": [],
+  "capabilities": ["需求分析", "客户沟通", "商机评估", "预算管理"],
+  "lastHeartbeat": "2026-03-19T08:35:00Z",
+  "status": "idle",
+  "updatedAt": "2026-03-19T08:35:00Z"
+}

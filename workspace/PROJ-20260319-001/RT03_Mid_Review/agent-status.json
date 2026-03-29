@@ -1,0 +1,17 @@
+{
+  "projectId": "PROJ-20260319-001",
+  "expertId": "expert-mid-review",
+  "rtDirectory": "RT03_Mid_Review",
+  "phase": "idle",
+  "drafts": [],
+  "research": [],
+  "deliverables": [],
+  "log": [
+    {
+      "timestamp": "2026-03-19T08:00:00Z",
+      "action": "directory_created",
+      "details": "RT 任务目录已创建"
+    }
+  ],
+  "updatedAt": "2026-03-19T08:00:00Z"
+}
