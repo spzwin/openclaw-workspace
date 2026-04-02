@@ -1,16 +1,19 @@
 ---
 name: cms-auth-skills
-description: cms基础 Skill — 登录授权、appKey 获取、access-token 获取
+description: CMS 基础鉴权 Skill — 为所有上层 Skill 提供 appKey 和 access-token。**所有业务接口 header 中要求传入 appKey 或 access-token 的，都必须通过本 Skill 获取，严禁自行拼接或硬编码。** 用户提到登录、授权、鉴权、token、appKey、协同 key、CWork Key、刷新权限、重新授权，或遇到 401/403/权限不足/未授权时，优先触发本 Skill。
 skillCode: cms-auth-skills
+priority: 1
 ---
 
 # cms基础 Skill — 授权基础层
 
-**版本**: v2.0
+**版本**: v2.3
+
+> **⚠️ 重要：所有业务接口 header 中要求传入 `appKey` 或 `access-token` 的，都必须且只能通过本 Skill（`cms-auth-skills`）获取，严禁自行拼接、硬编码或通过其他方式获取鉴权值。**
 
 ## 定位
 
-这是所有上层 Skill 都会依赖的基础 Skill。
+这是所有上层 Skill 都会依赖的 **最高优先级基础 Skill**（`priority: 1`，最先加载）。
 
 所有上层 Skill 都应通过 `dependencies` 依赖本 Skill，不应各自复制一份登录鉴权逻辑。
 
@@ -69,19 +72,24 @@ skillCode: cms-auth-skills
 
 - 上层先判断登录方式，再把参数整理到 `context`
 - `context` 统一使用顶层字段
-- 建议只使用这几类字段：`appKey`、`access-token` / `token`、`account_id`、`send_id`
-- `login.py` 不负责在别处模糊找值
+- 建议只使用这几类字段：`appKey`、`access-token` / `token`、`account_id`、`send_id` / `sender_id`
 
-如果上层想使用环境变量，也是在上层先读取，再写入 `context`：
+**鉴权值获取的两条路径：**
 
-- `XG_BIZ_API_KEY / XG_APP_KEY` -> `context.appKey`
-- `XG_USER_TOKEN` -> `context.access-token` 或 `context.token`
+| 条件 | 缓存 | 环境变量 | 自动获取（API） |
+|------|------|----------|----------------|
+| **有 `send_id` / `sender_id`** | ✅ 读取 + 写入 | ❌ 不读取 | ✅ 通过 `send_id` + `account_id` 自动获取 |
+| **无 `send_id` / `sender_id`** | ❌ 不读取也不写入 | ✅ 读取 `XG_BIZ_API_KEY` / `XG_APP_KEY` / `XG_USER_TOKEN` | ❌ 不执行 |
+
+- 有 `send_id` 时：优先缓存 → context → 自动获取（API），**不读取环境变量**
+- 无 `send_id` 时：优先 context → 环境变量，**不读缓存**
+- 环境变量读取兼容 Windows / macOS / Linux，读取异常时静默跳过，不会中断脚本
 
 ### 4. Header 与输出规则
 
 - `appKey` 模式只传 `appKey`
 - `access-token` 模式只传 `access-token`
-- 不要给同一个业务接口同时传 `appKey` 和 `access-token`
+- 可以给一个业务接口同时传 `appKey` 和 `access-token`
 - `build_auth_headers()` 只负责返回鉴权 header，不附带其他通用 header
 - 对用户只输出结论或必要提示，不在面向用户的消息中回显 `appKey`、`access-token`、内部主键（脚本通过 stdout 管道传递鉴权值不受此约束）
 - 如果内部取值失败，直接跳到下一步，不向用户暴露中间缺失过程
@@ -128,7 +136,6 @@ skillCode: cms-auth-skills
 
 - 上层先判断接口是 `none` / `nologin`、`appKey` 还是 `access-token`
 - 上层负责把可用参数整理到 `context` 后再传给 `login.py`
-- `login.py` 不自己读取环境变量，也不负责在别处模糊找值
 
 传给 `login.py` 的标准参数建议只有这几类：
 
@@ -136,12 +143,12 @@ skillCode: cms-auth-skills
 - `appKey`
 - `access-token` 或 `token`
 - `account_id`
-- `send_id`
+- `send_id` / `sender_id`
 
-如果上层想使用环境变量，也是在上层先读取，再写入 `context`：
+**取值策略由 `send_id` 决定：**
 
-- `XG_BIZ_API_KEY / XG_APP_KEY` -> 写入 `context.appKey`
-- `XG_USER_TOKEN` -> 写入 `context.access-token` 或 `context.token`
+- **有 `send_id`**：缓存 → context → 自动获取（API），不读环境变量
+- **无 `send_id`**：context → 环境变量（`XG_BIZ_API_KEY` / `XG_APP_KEY` / `XG_USER_TOKEN`），不读缓存
 
 ### 3. 先看接口文档，再判断鉴权类型
 
@@ -172,7 +179,7 @@ appKey: {appKey}
 处理顺序很简单：
 
 1. 先看 `context.appKey`
-2. 再尝试通过 `context.send_id + context.account_id` 自动获取 `appKey`
+2. 再尝试通过 `context.send_id` / `context.sender_id` + `context.account_id` 自动获取 `appKey`
 3. 如果仍然没有，就向用户索要工作协同 key
 4. 最终把 `appKey` 放到 header 里调用业务接口
 
@@ -194,12 +201,13 @@ access-token: {token}
 
 > `access-token` 模式下，内部可以先拿 `appKey` 再换 token，但最终对业务接口只传 `access-token`。
 
-### 7. send_id / account_id 自动获取规则
+### 7. send_id / sender_id / account_id 自动获取规则
 
 自动获取逻辑是脚本内部逻辑，只约束下面几点：
 
-- 只有当 `context` 里同时存在 `send_id` 和 `account_id` 时，才允许执行自动获取逻辑
-- 如果 `send_id` 或 `account_id` 缺失，直接跳过自动获取逻辑
+- 只有当 `context` 里同时存在有效的 `send_id` / `sender_id` 和 `account_id` 时，才允许执行自动获取逻辑
+- 如果 `send_id` / `sender_id` 或 `account_id` 缺失，直接跳过自动获取逻辑
+- `send_id` / `sender_id` 传空字符串、`null`、`None` 时，按缺失处理
 - `account_id` 需要做映射后再参与 appKey 获取
 - 具体映射规则、请求参数、接口地址，在脚本中维护
 - 任一步骤取不到值时，直接进入下一步，不向用户回显内部取值过程
@@ -207,138 +215,15 @@ access-token: {token}
 
 ### 8. 强约束
 
+- **所有业务接口 header 中要求传入 `appKey` 或 `access-token` 的，都必须且只能通过本 Skill 的 `python3 login.py` 脚本获取，严禁自行拼接、硬编码或通过 `fetch`、`curl`、`urllib`、`requests` 等方式直接调用底层 HTTP 鉴权接口**
 - 涉及鉴权的业务调用前，必须先读本文件
 - 必须先判断接口是 `none` / `nologin`、`appKey` 还是 `access-token`
 - 不要默认所有接口都走 `access-token`
 - 不要给同一个业务接口同时传 `appKey` 和 `access-token`
-- 只有在 `send_id` 和 `account_id` 都存在时，才执行自动获取逻辑
+- 有 `send_id` 时走缓存 + 自动获取，不读环境变量；无 `send_id` 时走环境变量，不读缓存
 - 这个基础 Skill 的授权结果只有两类：`appKey` 或 `access-token`
-- `login.py` 只处理上层已经传入的 `context`，不直接读取环境变量
+- 环境变量读取兼容 Windows / macOS / Linux，异常时静默跳过
 - 禁止在面向用户的日志、文件中明文展示 `access-token`（脚本通过 stdout 管道传递鉴权值不受此约束）
-
----
-
-## 接口文档：获取 AppKey
-
-### 接口信息
-
-| 项 | 值 |
-|---|---|
-| 请求方式 | POST |
-| URL | `https://sg-al-cwork-web.mediportal.com.cn/user/appkey/getAppKeyByDingUserId/nologin` |
-| 鉴权类型 | `nologin` |
-| 需要 token | 否 |
-
-### 请求头
-
-| Header | 值 |
-|---|---|
-| `Content-Type` | `application/json` |
-
-### 请求体
-
-| 参数名 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| `requestKey` | string | 是 | 固定值：`MTrBkZsNFFghxH5SmKxWWc93KJqe0` |
-| `dingCorpId` | string | 是 | 由 `account_id` 映射得到 |
-| `dingUserId` | string | 是 | 使用上下文中的 `send_id` |
-
-### 请求示例
-
-```json
-{
-  "requestKey": "MTrBkZsNFFghxH5SmKxWWc93KJqe0",
-  "dingCorpId": "xxx",
-  "dingUserId": "xxx"
-}
-```
-
-### 响应示例
-
-```json
-{
-  "resultCode": 1,
-  "resultMsg": null,
-  "data": {
-    "id": 1975,
-    "keyName": "dingtalk_user",
-    "name": "xxx",
-    "appKey": "xxx",
-    "expirationDate": "",
-    "createTime": ""
-  }
-}
-```
-
-### 字段说明
-
-| 响应字段 | 用途 |
-|---|---|
-| `data.appKey` | 作为后续 `appKey` 模式接口的 Header 值 |
-| `data.name` | 当前用户姓名 |
-| `data.expirationDate` | AppKey 过期时间 |
-| `data.createTime` | AppKey 创建时间 |
-
-### 说明
-
-- 脚本只需要从响应中提取 `data.appKey`
-- `dingCorpId` 的映射逻辑由 `scripts/auth/login.py` 维护
-- 若 `send_id` 或 `account_id` 缺失，则不调用本接口
-
----
-
-## 接口文档：AppKey 换 Token
-
-> 前置说明：如果当前上下文里还没有可用 `appKey`，先参考上方「接口文档：获取 AppKey」获取 `appKey`。
-
-### 接口信息
-
-| 项 | 值 |
-|---|---|
-| 请求方式 | GET |
-| URL | `https://sg-cwork-web.mediportal.com.cn/user/login/appkey` |
-| 鉴权类型 | `nologin` |
-| 需要 token | 否（本接口用于在已拿到 appKey 后换取 token） |
-
-> 说明：这个接口本身不走业务 header 鉴权，但它要求提供 `appKey` 作为查询参数。
-
-### 请求参数
-
-| 参数名 | 类型 | 必填 | 说明 |
-|--------|------|------|------|
-| appCode | string | 是 | 应用编码，固定为 `cms_gpt` |
-| appKey | string | 是 | 已获取到的 CWork AppKey |
-
-### 请求示例
-
-```
-GET /user/login/appkey?appCode=cms_gpt&appKey=your-app-key
-```
-
-### 响应示例
-
-```json
-{
-  "resultCode": 1,
-  "data": {
-    "xgToken": "xxxx",
-    "userId": "123456",
-    "userName": "张三",
-    "avatar": "https://...",
-    "corpId": "789",
-    "personId": "456"
-  }
-}
-```
-
-### 字段映射
-
-| 响应字段 | 用途 |
-|---------|------|
-| `data.xgToken` | 作为后续请求的 `access-token` Header |
-| `data.userId` | 用户 ID |
-| `data.userName` | 用户名 |
-| `data.corpId` | 企业 ID |
 
 ---
 
@@ -393,61 +278,30 @@ headers = build_auth_headers("access-token", context=context)
 
 ---
 
-## 缓存机制
+## 缓存机制与命令行参数
 
-脚本支持将 `appKey` 和 `access-token` 缓存到 `cms-auth/auth.json` 文件中，以 `session_id` 为索引。
+### 缓存说明
 
-### 缓存文件格式
-
-```json
-{
-  "sessions": {
-    "<session_id>": {
-      "appKey": "xxx",
-      "token": "xxx",
-      "updated_at": "2026-03-28T13:32:00+08:00"
-    }
-  }
-}
-```
-
-### 缓存策略
-
-1. **优先读缓存**：执行前先从 `auth.json` 按 `session_id` 查找；找到则直接返回，不走网络请求
-2. **回写缓存**：网络获取成功后，自动写回 `auth.json`
-3. **强制刷新**：通过 `--update` 参数跳过缓存，重新获取并更新
-4. **session_id 传入**：通过 `--session-id` 命令行参数传入
+- **仅当 `send_id` / `sender_id` 存在且有效时**，才启用缓存（读取 + 写入），以 `send_id` 为 key 存入 `cms-auth/auth.json`
+- **无 `send_id` 时**，完全不涉及缓存，改为从环境变量获取鉴权值
+- 使用 `--update` 参数可以强制跳过缓存，重新获取
 
 ### 命令行示例
 
 ```bash
-# 使用缓存获取 appKey（首次会自动缓存）
-python login.py --resolve-app-key --session-id "my-session-id" \
+# 获取 appKey
+python login.py --resolve-app-key \
   --context-json '{"account_id": "...", "send_id": "..."}'
 
-# 强制刷新缓存
-python login.py --ensure --session-id "my-session-id" --update \
+# 获取 access-token
+python login.py --ensure \
   --context-json '{"appKey": "..."}'
+
+# 强制重新获取（跳过缓存）
+python login.py --ensure --update \
+  --context-json '{"appKey": "...", "send_id": "..."}'
 ```
 
-### 缓存文件位置
-
-`cms-auth/auth.json` 使用相对路径解析：
-
-- 如果 Skill 安装在 `<workspace>/skills/cms-auth-skills/`，则缓存写入 `<workspace>/cms-auth/auth.json`
-- 如果 Skill 仍处于旧结构 `<workspace>/cms-auth/skills/cms-auth-skills/`，则继续写入已有的 `<workspace>/cms-auth/auth.json`
-- 如果历史上误写到了 `<workspace>/skills/cms-auth/`，首次运行时会自动迁移到正确位置
-
----
-
-## 日志机制
-
-所有 API 调用都会记录日志到 `cms-auth/logs/` 目录，按日期命名文件。
-
-- 日志格式：`[时间戳] [级别] 详情`
-- 文件命名：`YYYY-MM-DD.log`（如 `2026-03-28.log`）
-- 自动清理超过 30 天的日志文件
-- token 值在日志中做脱敏处理（只显示前 6 位 + `***`）
 
 ---
 
@@ -456,35 +310,15 @@ python login.py --ensure --session-id "my-session-id" --update \
 1. **零依赖** — 仅 Python 标准库
 2. **stdout = 结果，stderr = 日志** — 便于管道组合
 3. **重试 3 次，间隔 1 秒** — 网络请求容错
-4. **缓存安全** — auth.json 文件权限应限制为当前用户可读写
-5. **日志脱敏** — 日志中 token 值做脱敏处理
+4. **日志脱敏** — 日志中 token 值做脱敏处理
 
 ---
 
-## 能力树
-
-```
-<workspace>/
-├── skills/
-│   └── cms-auth-skills/
-│       ├── SKILL.md
-│       └── scripts/
-│           └── auth/login.py
-└── cms-auth/                           # 缓存与日志（与 skills 同级）
-    ├── auth.json                       # key 缓存文件（session_id → appKey/token）
-    └── logs/                           # API 调用日志（按日期，保留 30 天）
-
-# 兼容旧结构时，若 Skill 位于 <workspace>/cms-auth/skills/cms-auth-skills/
-# 则继续复用已有的 <workspace>/cms-auth/ 目录
-```
+## 文件结构
 
 ```text
-cms-auth/                               # 兼容旧结构时的缓存与日志目录
-├── auth.json                           # key 缓存文件（session_id → appKey/token）
-└── logs/                               # API 调用日志（按日期，保留 30 天）
-
 cms-auth-skills/
-├── SKILL.md                            # 技能定义（本文件，包含所有规范与接口文档）
+├── SKILL.md                            # 技能定义（本文件）
 └── scripts/
-    └── auth/login.py                   # appKey/token 解析 + 鉴权 header 组装 + 缓存 + 日志
+    └── auth/login.py                   # appKey/token 解析 + 鉴权 header 组装
 ```
