@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Read(//Users/spzhong/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/5f6d036c-5aec-4e88-b1f0-218cdbe19d2c/6bb31376-d12e-4b20-97c9-18fc1b8522f9/skills/**)",
+      "Read(//Users/spzhong/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/5f6d036c-5aec-4e88-b1f0-218cdbe19d2c/6bb31376-d12e-4b20-97c9-18fc1b8522f9/skills/skill-creator/**)",
+      "Bash(python -m scripts.quick_validate \"../ida-report\")",
+      "Bash(python -m scripts.package_skill \"../ida-report\" --output ~/Desktop/)",
+      "Bash(cp '/Users/spzhong/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/5f6d036c-5aec-4e88-b1f0-218cdbe19d2c/6bb31376-d12e-4b20-97c9-18fc1b8522f9/skills/skill-creator/--output/ida-report.skill' '~/Desktop/ida-report.skill')",
+      "Read(//Users/spzhong/Desktop/**)",
+      "Read(//Users/spzhong/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/**)",
+      "Read(//Users/spzhong/Library/Application Support/Claude/**)",
+      "Bash(python -m scripts.package_skill \"../ida-report\")",
+      "Bash(python -m scripts.quick_validate \"../pharma-province-report\")",
+      "Bash(mkdir -p '/Users/spzhong/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/5f6d036c-5aec-4e88-b1f0-218cdbe19d2c/6bb31376-d12e-4b20-97c9-18fc1b8522f9/skills/pharma-province-report/references')",
+      "Bash(cp '/Users/spzhong/Desktop/莫诺菲&科莫菲2/pharma-province-report/SKILL.md' '/Users/spzhong/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/5f6d036c-5aec-4e88-b1f0-218cdbe19d2c/6bb31376-d12e-4b20-97c9-18fc1b8522f9/skills/pharma-province-report/SKILL.md')",
+      "Bash(cp '/Users/spzhong/Desktop/莫诺菲&科莫菲2/pharma-province-report/references/*' '/Users/spzhong/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/5f6d036c-5aec-4e88-b1f0-218cdbe19d2c/6bb31376-d12e-4b20-97c9-18fc1b8522f9/skills/pharma-province-report/references/')",
+      "Bash(科莫菲2/pharma-province-report-skill/)",
+      "Bash(mkdir -p pharma-province-report-skill/scripts)",
+      "Bash(cp hospital_data_cli_standard_skill/scripts/hospital_data.py pharma-province-report-skill/scripts/)",
+      "Bash(cp hospital_data_cli_standard_skill/references/schema.json pharma-province-report-skill/references/)",
+      "Bash(cp hospital_data_cli_standard_skill/references/product_mapping.json pharma-province-report-skill/references/)",
+      "Bash(cp hospital_data_cli_standard_skill/references/field_mapping.json pharma-province-report-skill/references/)",
+      "Bash(python -c ' *)",
+      "Bash(python3)"
+    ]
+  }
+}
